@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { fetch as expoFetch } from 'expo/fetch'
 import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
 
 export default function ChatScreen() {
   const { messages, sendMessage, status, error } = useChat({
-    api: getApiUrl('/api/chat'),
-    fetch: expoFetch as unknown as typeof globalThis.fetch,
+    transport: new DefaultChatTransport({
+      api: getApiUrl('/api/chat'),
+      fetch: expoFetch as unknown as typeof globalThis.fetch,
+    }),
   })
   const [input, setInput] = useState('')
 

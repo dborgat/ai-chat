@@ -1,12 +1,12 @@
 import { Platform } from 'react-native'
+import Constants from 'expo-constants'
 
 export function getBaseUrl() {
   if (Platform.OS === 'web') return ''
-  // En mobile, apunta al server de desarrollo
-  const debuggerHost =
-    // @ts-ignore
-    global.__expo_dev_client_url?.hostname ?? 'localhost'
-  return `http://${debuggerHost}:8081`
+  // hostUri es algo como "192.168.1.5:8081" — la IP real del dev server
+  const hostUri = Constants.expoConfig?.hostUri
+  if (hostUri) return `http://${hostUri}`
+  return `http://localhost:8081`
 }
 
 export function getApiUrl(path: string) {
