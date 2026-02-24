@@ -8,5 +8,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'ai-chat',
   web: {
     bundler: 'metro',
+    output: 'server',
   },
 })

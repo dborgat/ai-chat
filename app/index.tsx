@@ -5,7 +5,7 @@ import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
 
 export default function ChatScreen() {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     api: getApiUrl('/api/chat'),
     fetch: expoFetch as unknown as typeof globalThis.fetch,
   })
@@ -19,6 +19,8 @@ export default function ChatScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background" paddingTop={60}>
+      <Text padding="$2" color="$color" opacity={0.5} fontSize={12}>status: {status}</Text>
+      {error && <Text padding="$2" color="red" fontSize={11}>{error.message}{'\n'}{String(error)}</Text>}
       <ScrollView flex={1} padding="$4">
         {messages.map((message) => (
           <YStack
