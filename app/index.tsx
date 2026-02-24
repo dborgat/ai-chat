@@ -5,14 +5,16 @@ import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
 
 export default function ChatScreen() {
-  const { messages, input, setInput, handleSubmit, isLoading } = useChat({
+  const { messages, sendMessage, status } = useChat({
     api: getApiUrl('/api/chat'),
     fetch: expoFetch as unknown as typeof globalThis.fetch,
   })
+  const [input, setInput] = useState('')
 
   const onSend = () => {
     if (!input.trim()) return
-    handleSubmit()
+    sendMessage({ text: input })
+    setInput('')
   }
 
   return (
@@ -46,7 +48,7 @@ export default function ChatScreen() {
           placeholder="Escribe un mensaje..."
           onSubmitEditing={onSend}
         />
-        <Button onPress={onSend} disabled={isLoading}>
+        <Button onPress={onSend} disabled={status !== 'ready'}>
           Enviar
         </Button>
       </XStack>
