@@ -38,6 +38,27 @@ Then press `a` for Android, `i` for iOS, or `w` for web.
 - The API route calls Gemini 2.0 Flash via the [Vercel AI SDK](https://sdk.vercel.ai/) and streams the response back to the client
 - `expo/fetch` is used on the client to support streaming responses on native platforms
 
+## TypeScript
+
+The project uses `"strict": true`. Key typing conventions:
+
+- **API route request body** — `request.json()` returns `any`; it is cast to a typed interface:
+  ```ts
+  interface ChatRequestBody {
+    messages: UIMessage[]  // UIMessage from 'ai'
+  }
+  const { messages } = (await request.json()) as ChatRequestBody
+  ```
+
+- **Rendering message parts** — `Array.filter()` does not narrow discriminated unions. Use the SDK's type guard `isTextUIPart` (from `'ai'`) instead of a manual `part.type === 'text'` check, so TypeScript knows each `part` is `TextUIPart` in the `.map()`:
+  ```tsx
+  import { isTextUIPart } from 'ai'
+  // ...
+  message.parts.filter(isTextUIPart).map((part) => part.text)
+  ```
+
+- **`expo/fetch` cast** — `expoFetch` has a slightly different type signature than the browser `fetch`. The double cast `as unknown as typeof globalThis.fetch` is intentional and required for `DefaultChatTransport`.
+
 ## Stack
 
 | | |

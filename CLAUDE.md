@@ -92,10 +92,30 @@ The `.env` file must contain Google Vertex AI credentials:
 
 **`app.config.ts`** — `web.output: 'server'` is required for API routes to be served by the dev server. Without it, POST requests return the web HTML instead of invoking the handler.
 
-**`app.config.ts`** — `web.output: 'server'` is required for API routes to be served by the dev server. Without it, POST requests return the web HTML instead of invoking the handler.
-
 **React version** — pinned to `19.1.0` to match `react-native-renderer` bundled in RN 0.81.5. Using `^19.2.x` causes a renderer mismatch crash at startup.
 
 ### Babel plugin order matters
 
 `react-native-reanimated/plugin` must be **last** in the plugins array in `babel.config.js`.
+
+### TypeScript conventions
+
+`tsconfig.json` uses `"strict": true` (extends `expo/tsconfig.base`).
+
+**API route request body** — `request.json()` returns `any`; always cast it to a typed interface:
+```ts
+interface ChatRequestBody {
+  messages: UIMessage[]  // from 'ai'
+}
+const { messages } = (await request.json()) as ChatRequestBody
+```
+
+**Message part rendering** — `Array.filter()` does not narrow discriminated union types. Use the SDK's built-in type guards instead of a manual `part.type === 'text'` check:
+```tsx
+import { isTextUIPart } from 'ai'
+// part is correctly narrowed to TextUIPart inside .map()
+message.parts.filter(isTextUIPart).map((part) => part.text)
+```
+Other available guards: `isReasoningUIPart`, `isFileUIPart`, `isToolUIPart`.
+
+**`expoFetch` cast** — the double cast `expoFetch as unknown as typeof globalThis.fetch` is intentional; `expo/fetch` has a slightly different type signature and this is the required escape hatch for `DefaultChatTransport`.
