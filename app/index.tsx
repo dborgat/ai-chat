@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { KeyboardAvoidingView, Platform } from 'react-native'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isTextUIPart } from 'ai'
@@ -13,14 +13,18 @@ import Animated, {
 import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
 import { TypingDots } from '../components/TypingDots'
+import { useAppTheme } from '../context/ThemeContext'
 
 export default function ChatScreen() {
-  const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({
+  const transport = useMemo(
+    () => new DefaultChatTransport({
       api: getApiUrl('/api/chat'),
       fetch: expoFetch as unknown as typeof globalThis.fetch,
     }),
-  })
+    [],
+  )
+  const { messages, sendMessage, status, error } = useChat({ transport })
+  const { theme, toggleTheme } = useAppTheme()
   const [input, setInput] = useState('')
   const sendScale = useSharedValue(1)
   const sendAnimStyle = useAnimatedStyle(() => ({
@@ -42,7 +46,16 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <YStack flex={1} backgroundColor="$background" paddingTop={60}>
-        <Text padding="$2" color="$color" opacity={0.5} fontSize={12}>status: {status}</Text>
+        <XStack paddingHorizontal="$4" paddingTop="$2" justifyContent="flex-end">
+          <Button
+            size="$3"
+            chromeless
+            onPress={toggleTheme}
+            accessibilityLabel={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </Button>
+        </XStack>
         {error && <Text padding="$2" color="red" fontSize={11}>{error.message}{'\n'}{String(error)}</Text>}
         <ScrollView flex={1} padding="$4">
           {messages.map((message) => (

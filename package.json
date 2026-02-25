@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/google-vertex": "^4.0.61",
     "@ai-sdk/react": "^3.0.99",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@tamagui/babel-plugin": "^2.0.0-rc.17",
     "@tamagui/config": "^2.0.0-rc.17",
     "@tamagui/portal": "^2.0.0-rc.17",
