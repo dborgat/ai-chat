@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { DefaultChatTransport, isTextUIPart } from 'ai'
 import { fetch as expoFetch } from 'expo/fetch'
 import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
@@ -37,7 +37,7 @@ export default function ChatScreen() {
           >
             <Text color={message.role === 'user' ? 'white' : '$color'}>
               {message.parts
-                .filter((part) => part.type === 'text')
+                .filter(isTextUIPart)
                 .map((part) => part.text)
                 .join('')}
             </Text>

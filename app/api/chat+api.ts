@@ -1,9 +1,13 @@
 import { createVertex } from '@ai-sdk/google-vertex'
-import { convertToModelMessages, streamText } from 'ai'
+import { convertToModelMessages, streamText, UIMessage } from 'ai'
 
-export async function POST(request: Request) {
+interface ChatRequestBody {
+  messages: UIMessage[]
+}
+
+export async function POST(request: Request): Promise<Response> {
   try {
-    const { messages } = await request.json()
+    const { messages } = (await request.json()) as ChatRequestBody
     console.log('[API] hit — messages:', messages.length)
 
     const vertex = createVertex({
