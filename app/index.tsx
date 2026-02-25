@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { KeyboardAvoidingView, Platform } from 'react-native'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isTextUIPart } from 'ai'
 import { fetch as expoFetch } from 'expo/fetch'
@@ -21,6 +22,10 @@ export default function ChatScreen() {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
     <YStack flex={1} backgroundColor="$background" paddingTop={60}>
       <Text padding="$2" color="$color" opacity={0.5} fontSize={12}>status: {status}</Text>
       {error && <Text padding="$2" color="red" fontSize={11}>{error.message}{'\n'}{String(error)}</Text>}
@@ -58,6 +63,7 @@ export default function ChatScreen() {
         </Button>
       </XStack>
     </YStack>
+    </KeyboardAvoidingView>
   )
 }
 
