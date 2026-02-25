@@ -37,6 +37,9 @@ Then press `a` for Android, `i` for iOS, or `w` for web.
 - Messages are streamed from `app/api/chat+api.ts` — an Expo Router API route running on the dev server
 - The API route calls Gemini 2.0 Flash via the [Vercel AI SDK](https://sdk.vercel.ai/) and streams the response back to the client
 - `expo/fetch` is used on the client to support streaming responses on native platforms
+- Message bubbles animate in with `FadeInDown` + spring layout transitions via [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+- A wave typing indicator (`components/TypingDots.tsx`) appears while the AI is thinking (`status === 'submitted'`)
+- Theme (light/dark) is toggled with the ☀️/🌙 button and persisted across restarts via AsyncStorage
 
 ## TypeScript
 
@@ -66,5 +69,7 @@ The project uses `"strict": true`. Key typing conventions:
 | Framework | Expo 54, React Native 0.81 |
 | Routing | Expo Router 6 |
 | UI | Tamagui |
+| Animations | React Native Reanimated 4 |
 | AI model | Gemini 2.0 Flash (Google Vertex AI) |
 | AI SDK | Vercel AI SDK v6 |
+| Persistence | AsyncStorage (`@react-native-async-storage/async-storage`) |

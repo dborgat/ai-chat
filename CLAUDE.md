@@ -64,7 +64,20 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 
 **UI** — Tamagui component library (`tamagui.config.ts` uses `defaultConfig` from `@tamagui/config/v4`). The Babel plugin (`@tamagui/babel-plugin`) extracts styles at build time; `disableExtraction: true` is set in dev mode.
 
-**Root layout** (`app/_layout.tsx`) — wraps the app in `TamaguiProvider`, `PortalProvider`, and a system-theme-aware theme provider, then renders a Stack navigator.
+**Root layout** (`app/_layout.tsx`) — split into two components:
+- `RootLayout` (default export): wraps everything in `LayoutAnimationConfig skipEntering` (enables Reanimated exit animations on Android) and `AppThemeProvider`
+- `ThemedApp`: consumes `useAppTheme()` and passes the resolved theme to `TamaguiProvider` and React Navigation's `ThemeProvider`. Must be a separate component so it can call the hook after the provider renders.
+
+**Theme** (`context/ThemeContext.tsx`)
+- `AppThemeProvider`: reads `AsyncStorage` key `'app_theme'` on mount, falls back to `useColorScheme()`. Writes on every toggle.
+- `useAppTheme()`: returns `{ theme: 'light' | 'dark', toggleTheme }`. Call from any component inside the provider.
+- Toggle button in `app/index.tsx` (top-right, ☀️ in dark / 🌙 in light).
+
+**Animations** (`components/TypingDots.tsx`, `app/index.tsx`)
+- Each message bubble: `<Animated.View entering={FadeInDown.springify().duration(350)} layout={LinearTransition.springify()}>`
+- Typing indicator: `<TypingDots />` rendered when `status === 'submitted'`. Three dots bounce in a wave via staggered `withRepeat(withSequence(...))` with 150ms delay between dots. Dot color is theme-aware (`theme.gray10.val` from `useTheme()`).
+- Send button: `useSharedValue(1)` scale — `withSpring(0.88)` on `pressIn`, `withSpring(1)` on `pressOut`.
+- `LayoutAnimationConfig skipEntering` in `_layout.tsx` is required for `FadeOut` exiting animations to work on Android.
 
 ### Tech stack
 
@@ -76,6 +89,7 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 | Animations | react-native-reanimated ~4.1 |
 | AI (client) | @ai-sdk/react ^3, ai ^6 |
 | AI (server) | @ai-sdk/google-vertex ^4, ai ^6 |
+| Persistence | @react-native-async-storage/async-storage 2.2.0 |
 | Validation | zod ^4 |
 
 ### Environment variables
@@ -97,6 +111,17 @@ The `.env` file must contain Google Vertex AI credentials:
 ### Babel plugin order matters
 
 `react-native-reanimated/plugin` must be **last** in the plugins array in `babel.config.js`.
+
+### DefaultChatTransport must be memoized
+
+`new DefaultChatTransport(...)` must be wrapped in `useMemo` (empty deps) inside the component — constructing it inline causes a new reference on every render, which can trigger spurious re-subscriptions inside `useChat`:
+```ts
+const transport = useMemo(
+  () => new DefaultChatTransport({ api: getApiUrl('/api/chat'), fetch: expoFetch as unknown as typeof globalThis.fetch }),
+  [],
+)
+const { messages, sendMessage, status, error } = useChat({ transport })
+```
 
 ### TypeScript conventions
 
