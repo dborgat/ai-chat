@@ -75,7 +75,7 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 
 **Animations** (`components/TypingDots.tsx`, `app/index.tsx`)
 - Each message bubble: `<Animated.View entering={FadeInDown.springify().duration(350)} layout={LinearTransition.springify()}>`
-- Typing indicator: `<TypingDots />` rendered when `status === 'submitted'`. Three dots bounce in a wave via staggered `withRepeat(withSequence(...))` with 150ms delay between dots. Dot color is theme-aware (`theme.gray10.val` from `useTheme()`).
+- Typing indicator: `<TypingDots />` rendered when `status === 'submitted'`. Three dots bounce in a wave via staggered `withRepeat(withSequence(...))` with 150ms delay between dots. Dot color is theme-aware (`theme.placeholderColor.val` from `useTheme()`).
 - Send button: `useSharedValue(1)` scale — `withSpring(0.88)` on `pressIn`, `withSpring(1)` on `pressOut`.
 - `LayoutAnimationConfig skipEntering` in `_layout.tsx` is required for `FadeOut` exiting animations to work on Android.
 
@@ -107,6 +107,12 @@ The `.env` file must contain Google Vertex AI credentials:
 **`app.config.ts`** — `web.output: 'server'` is required for API routes to be served by the dev server. Without it, POST requests return the web HTML instead of invoking the handler.
 
 **React version** — pinned to `19.1.0` to match `react-native-renderer` bundled in RN 0.81.5. Using `^19.2.x` causes a renderer mismatch crash at startup.
+
+### Tamagui theme tokens vs palette tokens
+
+`useTheme()` returns **theme variables**, not palette tokens. In `@tamagui/config/v4` the available theme variables are `color1`–`color12`, `background`, `color`, `placeholderColor`, `borderColor`, `blue1`–`blue12`, etc. — **not** `gray1`–`gray12`. Those are palette tokens in `config.tokens` and are not accessible via `useTheme()`. Accessing a non-existent key returns `undefined` and will throw on `.val`.
+
+Use `theme.placeholderColor.val` for a muted gray, or `theme.color8.val` for a medium neutral from the color scale.
 
 ### Babel plugin order matters
 
