@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as AuthSession from 'expo-auth-session'
 import * as WebBrowser from 'expo-web-browser'
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 // Required: lets expo-auth-session complete the redirect when the browser returns
 WebBrowser.maybeCompleteAuthSession()
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const redirectUri = AuthSession.makeRedirectUri()
+  const redirectUri = useMemo(() => AuthSession.makeRedirectUri(), [])
 
   // Log so you can register the value in Google Cloud Console
   useEffect(() => {
@@ -63,13 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     discovery,
   )
 
-  // Handle OAuth response
-  useEffect(() => {
-    if (response?.type !== 'success') return
-    void exchangeCode(response.params.code)
-  }, [response])
-
-  async function exchangeCode(code: string) {
+  const exchangeCode = useCallback(async (code: string) => {
+    if (!request?.codeVerifier) return
     try {
       const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -79,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           client_id: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
           redirect_uri: redirectUri,
           grant_type: 'authorization_code',
-          code_verifier: request!.codeVerifier!,
+          code_verifier: request.codeVerifier,
         }).toString(),
       })
       const { access_token } = (await tokenRes.json()) as { access_token: string }
@@ -91,10 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
       setUser(userData)
-    } catch {
-      // sign-in failed silently — user stays on LoginScreen
+    } catch (err) {
+      console.error('[Auth] Token exchange failed:', err)
     }
-  }
+  }, [redirectUri, request])
+
+  // Handle OAuth response
+  useEffect(() => {
+    if (response?.type !== 'success') return
+    void exchangeCode(response.params.code)
+  }, [response, exchangeCode])
 
   const signIn = async () => {
     await promptAsync()
