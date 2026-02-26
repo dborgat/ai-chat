@@ -38,7 +38,7 @@ function Dot({ delay }: { delay: number }) {
     transform: [{ translateY: translateY.value }],
   }))
 
-  return <Animated.View style={[styles.dot, { backgroundColor: theme.gray10.val }, animStyle]} />
+  return <Animated.View style={[styles.dot, { backgroundColor: theme.placeholderColor.val }, animStyle]} />
 }
 
 export function TypingDots() {
