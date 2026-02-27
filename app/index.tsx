@@ -56,8 +56,8 @@ export default function ChatScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <YStack flex={1} backgroundColor="$background" paddingTop={60}>
-        <XStack paddingHorizontal="$4" paddingTop="$2" justifyContent="space-between" alignItems="center">
+      <YStack flex={1} background="$background" pt="$6">
+        <XStack px="$4" pt="$2" justify="space-between" verticalAlign="center">
           <Button size="$3" chromeless onPress={signOut} variant="outlined">
             Log Out
           </Button>
@@ -70,8 +70,16 @@ export default function ChatScreen() {
             {theme === 'dark' ? '☀️' : '🌙'}
           </Button>
         </XStack>
-        {error && <Text padding="$2" color="red" fontSize={11}>{error.message}{'\n'}{String(error)}</Text>}
-        <ScrollView flex={1} padding="$4">
+        {error && (
+          <YStack p="$2">
+            <Text color="red" fontSize={11}>
+              {error.message}
+              {'\n'}
+              {String(error)}
+            </Text>
+          </YStack>
+        )}
+        <ScrollView flex={1} p="$4">
           {messages.length > 0 ? messages.map((message) => (
             <Animated.View
               key={message.id}
@@ -89,11 +97,11 @@ export default function ChatScreen() {
                 }
               />
             </Animated.View>
-          )) :  <Text padding="$2" color="$textSoft" textAlign="center">Bienvenido a AI CHAT 😄</Text>}
+          )) :  <Text p="$2" style={{ textAlign: 'center' }}>Bienvenido a AI CHAT 😄</Text>}
           {status === 'submitted' && <TypingDots />}
         </ScrollView>
 
-        <XStack padding="$4" gap="$2" borderTopWidth={1} borderColor="$borderColor">
+        <XStack p="$4" gap="$2" borderTopWidth={1} borderColor="$borderColor">
           <Input
             flex={1}
             value={input}
