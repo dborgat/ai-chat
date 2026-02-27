@@ -1,17 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import * as AuthSession from 'expo-auth-session'
-import * as WebBrowser from 'expo-web-browser'
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-
-// Required: lets expo-auth-session complete the redirect when the browser returns
-WebBrowser.maybeCompleteAuthSession()
+import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin'
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'auth_user'
 
-const discovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://oauth2.googleapis.com/token',
-}
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+})
 
 interface User {
   name: string
@@ -47,64 +42,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const redirectUri = useMemo(() => AuthSession.makeRedirectUri({
-    scheme: 'com.googleusercontent.apps.379093049292-e6sf908jfereipvk1pdoqqrqequn9end',
-    path: 'oauth2redirect',
-  }), [])
-
-  // Log so you can register the value in Google Cloud Console
-  useEffect(() => {
-    console.log('[Auth] Redirect URI:', redirectUri)
-  }, [redirectUri])
-
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
-      redirectUri,
-      scopes: ['openid', 'profile', 'email'],
-    },
-    discovery,
-  )
-
-  const exchangeCode = useCallback(async (code: string) => {
-    if (!request?.codeVerifier) return
+  const signIn = async () => {
     try {
-      const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          code,
-          client_id: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
-          redirect_uri: redirectUri,
-          grant_type: 'authorization_code',
-          code_verifier: request.codeVerifier,
-        }).toString(),
-      })
-      const { access_token } = (await tokenRes.json()) as { access_token: string }
-
-      const userRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-        headers: { Authorization: `Bearer ${access_token}` },
-      })
-      const userData = (await userRes.json()) as User
-
+      await GoogleSignin.hasPlayServices()
+      const result = await GoogleSignin.signIn()
+      if (result.type !== 'success') return
+      const userData: User = {
+        name: result.data.user.name ?? '',
+        email: result.data.user.email,
+        picture: result.data.user.photo ?? '',
+      }
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
       setUser(userData)
     } catch (err) {
-      console.error('[Auth] Token exchange failed:', err)
+      if (isErrorWithCode(err)) {
+        if (err.code === statusCodes.SIGN_IN_CANCELLED) return
+        if (err.code === statusCodes.IN_PROGRESS) return
+      }
+      console.error('[Auth] Sign-in failed:', err)
     }
-  }, [redirectUri, request])
-
-  // Handle OAuth response
-  useEffect(() => {
-    if (response?.type !== 'success') return
-    void exchangeCode(response.params.code)
-  }, [response, exchangeCode])
-
-  const signIn = async () => {
-    await promptAsync()
   }
 
   const signOut = async () => {
+    try {
+      await GoogleSignin.signOut()
+    } catch {
+      // ignore — still clear local session
+    }
     await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {})
     setUser(null)
   }
