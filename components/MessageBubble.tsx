@@ -78,7 +78,7 @@ export const MessageBubble = memo(function MessageBubble({
             <Image source={{ uri: userPicture }} style={styles.avatar} />
           ) : (
             <Text fontSize={10} fontWeight="bold" color="$color">
-              AI
+              {isUser ? 'User' : 'IA'}
             </Text>
           )}
         </YStack>
