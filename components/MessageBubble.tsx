@@ -54,25 +54,19 @@ export const MessageBubble = memo(function MessageBubble({
 
   return (
     <YStack
-      self={isUser ? 'flex-end' : 'flex-start'}
-      alignItems={isUser ? 'flex-end' : 'flex-start'}
       mb="$4"
+      style={{ alignSelf: isUser ? 'flex-end' : 'flex-start', alignItems: isUser ? 'flex-end' : 'flex-start' }}
     >
       <XStack
-        alignItems="flex-end"
-        gap="$2"
-        flexDirection={isUser ? 'row-reverse' : 'row'}
+        gap="$3"
+        style={{ alignItems: 'flex-end', flexDirection: isUser ? 'row-reverse' : 'row' }}
       >
         {/* Avatar */}
         <YStack
           width={32}
           height={32}
-          borderRadius={16}
-          overflow="hidden"
           backgroundColor={isUser ? '$blue5' : '$color4'}
-          marginInline={'$2'}
-          alignItems="center"
-          justifyContent="center"
+          style={{ borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}
         >
           {isUser && userPicture ? (
             <Image source={{ uri: userPicture }} style={styles.avatar} />
@@ -126,7 +120,7 @@ export const MessageBubble = memo(function MessageBubble({
             fontSize={11}
             color="$placeholderColor"
             mt="$1"
-            px="$1"
+            px="$9"
           >
             {formattedTime}
           </Text>
