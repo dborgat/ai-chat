@@ -47,7 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const redirectUri = useMemo(() => AuthSession.makeRedirectUri(), [])
+  const redirectUri = useMemo(() => AuthSession.makeRedirectUri({
+    scheme: 'com.googleusercontent.apps.379093049292-e6sf908jfereipvk1pdoqqrqequn9end',
+    path: 'oauth2redirect',
+  }), [])
 
   // Log so you can register the value in Google Cloud Console
   useEffect(() => {
