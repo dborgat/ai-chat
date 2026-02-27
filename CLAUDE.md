@@ -74,7 +74,14 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 
 **Root layout** (`app/_layout.tsx`) — split into two components:
 - `RootLayout` (default export): wraps everything in `LayoutAnimationConfig skipEntering` and `AppThemeProvider` + `AuthProvider`
-- `ThemedApp`: consumes `useAppTheme()` and `useAuth()`. While `loading` is true renders nothing (prevents flash). Then renders `<LoginScreen />` or `<Stack />` based on `user`. Must be a separate component so it can call hooks after providers render.
+- `ThemedApp`: consumes `useAppTheme()` and `useAuth()`. While `loading` is true renders a centered `<ActivityIndicator />`. Then renders `<LoginScreen />` or `<Stack />` based on `user`. Must be a separate component so it can call hooks after providers render.
+
+**Message bubbles** (`components/MessageBubble.tsx`)
+- Wrapped in `React.memo` — prevents re-renders of existing bubbles during streaming
+- Press handlers (`onPressIn`, `onPressOut`, `handleLongPress`) wrapped in `useCallback` for stable references
+- Each bubble owns its own `useSharedValue(1)` for scale animation
+- Timestamps stored in `useRef<Map<string, number>>` in `index.tsx`, recorded via `useEffect([messages])`
+- Long-press copies text via `expo-clipboard`; feedback is a `withSpring(1.05)` bounce
 
 **Theme** (`context/ThemeContext.tsx`)
 - `AppThemeProvider`: reads `AsyncStorage` key `'app_theme'` on mount, falls back to `useColorScheme()`. Writes on every toggle.
@@ -125,6 +132,26 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 `useTheme()` returns **theme variables**, not palette tokens. In `@tamagui/config/v4` the available theme variables are `color1`–`color12`, `background`, `color`, `placeholderColor`, `borderColor`, `blue1`–`blue12`, etc. — **not** `gray1`–`gray12`. Those are palette tokens in `config.tokens` and are not accessible via `useTheme()`. Accessing a non-existent key returns `undefined` and will throw on `.val`.
 
 Use `theme.placeholderColor.val` for a muted gray, or `theme.color8.val` for a medium neutral from the color scale.
+
+### Tamagui v2 RC — prop naming and style prop rules
+
+In `@tamagui/config/v4` (v2 RC), not all CSS longhand props are accepted directly on Stack components. Follow this pattern:
+
+- **Token-based props** work as direct component props: `background="$blue10"`, `padding="$3"`, `gap="$2"`, `borderRadius="$4"`, `mb="$4"`, `mt="$1"`, `px="$1"`, `color="$color"`, etc.
+- **Raw CSS values** (strings like `'flex-end'`, numbers like `16`) must go in `style={{}}`:
+  ```tsx
+  // Wrong — TypeScript error
+  <YStack alignSelf="flex-end" alignItems="center" borderRadius={16} overflow="hidden">
+  // Correct
+  <YStack style={{ alignSelf: 'flex-end', alignItems: 'center', borderRadius: 16, overflow: 'hidden' }}>
+  ```
+- **`background` not `backgroundColor`** — the prop is `background` in Tamagui v2 RC:
+  ```tsx
+  // Wrong
+  <YStack backgroundColor="$blue10">
+  // Correct
+  <YStack background="$blue10">
+  ```
 
 ### Babel plugin order matters
 

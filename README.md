@@ -2,6 +2,8 @@
 
 A cross-platform AI chat app built with Expo (iOS, Android, Web) powered by Google Vertex AI (Gemini 2.0 Flash).
 
+Built by me as part of a technical challenge, using [Claude Code](https://claude.ai/code) as an AI pair programmer throughout the development process.
+
 ## Setup
 
 ### 1. Install dependencies
@@ -49,7 +51,8 @@ npx expo run:android
 - Messages are streamed from `app/api/chat+api.ts` — an Expo Router API route running on the dev server
 - The API route calls Gemini 2.0 Flash via the [Vercel AI SDK](https://sdk.vercel.ai/) and streams the response back to the client
 - `expo/fetch` is used on the client to support streaming responses on native platforms
-- Message bubbles animate in with `FadeInDown` + spring layout transitions via [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+- Message bubbles have speech-bubble tails, avatars (Google photo for the user, "IA" for the AI), and animate in with `FadeInDown` + spring layout transitions via [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+- Tap a bubble to reveal its timestamp; long-press to copy the text to clipboard
 - A wave typing indicator (`components/TypingDots.tsx`) appears while the AI is thinking (`status === 'submitted'`)
 - Theme (light/dark) is toggled with the ☀️/🌙 button and persisted across restarts via AsyncStorage
 - Google Sign-In gates access to the chat — session persists via AsyncStorage, sign out clears it
