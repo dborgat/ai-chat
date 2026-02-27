@@ -36,11 +36,11 @@ export default function ChatScreen() {
     transform: [{ scale: sendScale.value }],
   }))
 
-  const onSend = () => {
+  const onSend = useCallback(() => {
     if (!input.trim()) return
     sendMessage({ text: input })
     setInput('')
-  }
+  }, [input, sendMessage])
 
   const onPressSendIn = useCallback(() => { sendScale.value = withSpring(0.88) }, [sendScale])
   const onPressSendOut = useCallback(() => { sendScale.value = withSpring(1) }, [sendScale])

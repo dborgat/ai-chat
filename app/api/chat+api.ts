@@ -42,6 +42,6 @@ export async function POST(request: Request): Promise<Response> {
     return result.toUIMessageStreamResponse()
   } catch (error) {
     console.error('[API] caught error:', error)
-    return new Response(String(error), { status: 500 })
+    return new Response('Internal server error', { status: 500 })
   }
 }

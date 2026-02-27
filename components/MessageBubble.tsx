@@ -74,11 +74,11 @@ export const MessageBubble = memo(function MessageBubble({
           alignItems="center"
           justifyContent="center"
         >
-          {isUser ? (
+          {isUser && userPicture ? (
             <Image source={{ uri: userPicture }} style={styles.avatar} />
           ) : (
             <Text fontSize={10} fontWeight="bold" color="$color">
-              IA
+              AI
             </Text>
           )}
         </YStack>
