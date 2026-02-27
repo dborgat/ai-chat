@@ -43,10 +43,10 @@ function Dot({ delay }: { delay: number }) {
 
 export function TypingDots() {
   return (
-    <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
+    <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={{ marginLeft: 40 }}>
       <YStack
         alignSelf="flex-start"
-        backgroundColor="$gray5"
+        backgroundColor="$color3"
         borderRadius="$4"
         padding="$3"
         marginBottom="$2"
