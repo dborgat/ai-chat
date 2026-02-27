@@ -64,9 +64,17 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 
 **UI** — Tamagui component library (`tamagui.config.ts` uses `defaultConfig` from `@tamagui/config/v4`). The Babel plugin (`@tamagui/babel-plugin`) extracts styles at build time; `disableExtraction: true` is set in dev mode.
 
+**Auth** (`context/AuthContext.tsx`)
+- `AuthProvider`: on mount reads `AsyncStorage` key `'auth_user'`. If found, restores session (no login screen). Exposes `{ user, loading, signIn, signOut }` via `useAuth()`.
+- `signIn`: calls `GoogleSignin.hasPlayServices()` then `GoogleSignin.signIn()` — shows the native Google account picker. On success, saves `{ name, email, picture }` to AsyncStorage and sets `user`.
+- `signOut`: calls `GoogleSignin.signOut()`, clears AsyncStorage, sets `user` to `null`.
+- `GoogleSignin.configure({ webClientId })` is called at module level with `EXPO_PUBLIC_GOOGLE_CLIENT_ID`.
+- Requires a **development build** (`npx expo run:android`) — does NOT work in Expo Go (native module).
+- `LoginScreen` (`components/LoginScreen.tsx`): shown when `user === null`. Single "Continuar con Google" button.
+
 **Root layout** (`app/_layout.tsx`) — split into two components:
-- `RootLayout` (default export): wraps everything in `LayoutAnimationConfig skipEntering` (enables Reanimated exit animations on Android) and `AppThemeProvider`
-- `ThemedApp`: consumes `useAppTheme()` and passes the resolved theme to `TamaguiProvider` and React Navigation's `ThemeProvider`. Must be a separate component so it can call the hook after the provider renders.
+- `RootLayout` (default export): wraps everything in `LayoutAnimationConfig skipEntering` and `AppThemeProvider` + `AuthProvider`
+- `ThemedApp`: consumes `useAppTheme()` and `useAuth()`. While `loading` is true renders nothing (prevents flash). Then renders `<LoginScreen />` or `<Stack />` based on `user`. Must be a separate component so it can call hooks after providers render.
 
 **Theme** (`context/ThemeContext.tsx`)
 - `AppThemeProvider`: reads `AsyncStorage` key `'app_theme'` on mount, falls back to `useColorScheme()`. Writes on every toggle.
@@ -89,16 +97,20 @@ Cross-platform AI chat app (iOS/Android/Web) using Expo file-based routing via `
 | Animations | react-native-reanimated ~4.1 |
 | AI (client) | @ai-sdk/react ^3, ai ^6 |
 | AI (server) | @ai-sdk/google-vertex ^4, ai ^6 |
+| Auth | @react-native-google-signin/google-signin |
 | Persistence | @react-native-async-storage/async-storage 2.2.0 |
 | Validation | zod ^4 |
 
 ### Environment variables
 
-The `.env` file must contain Google Vertex AI credentials:
+**Server-side** (Vertex AI):
 - `GOOGLE_VERTEX_PROJECT`
 - `GOOGLE_VERTEX_LOCATION`
 - `GOOGLE_CLIENT_EMAIL`
 - `GOOGLE_PRIVATE_KEY`
+
+**Client-side** (Google Sign-In — must have `EXPO_PUBLIC_` prefix to be bundled):
+- `EXPO_PUBLIC_GOOGLE_CLIENT_ID` — Web application OAuth client ID from Google Cloud Console
 
 ### Critical configuration
 
