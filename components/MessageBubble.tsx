@@ -1,0 +1,161 @@
+import * as Clipboard from 'expo-clipboard'
+import { isTextUIPart, UIMessage } from 'ai'
+import { Image, Pressable, StyleSheet } from 'react-native'
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated'
+import { Text, useTheme, View, XStack, YStack } from 'tamagui'
+
+interface MessageBubbleProps {
+  message: UIMessage
+  isUser: boolean
+  userPicture: string
+  timestamp: number | undefined
+  showTimestamp: boolean
+  onPress: () => void
+}
+
+export function MessageBubble({
+  message,
+  isUser,
+  userPicture,
+  timestamp,
+  showTimestamp,
+  onPress,
+}: MessageBubbleProps) {
+  const theme = useTheme()
+  const scale = useSharedValue(1)
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }))
+
+  const text = message.parts.filter(isTextUIPart).map((p) => p.text).join('')
+  const bubbleColor = isUser ? theme.blue10.val : theme.color3.val
+
+  const handleLongPress = async () => {
+    await Clipboard.setStringAsync(text)
+    scale.value = withSpring(1.05, {}, () => {
+      scale.value = withSpring(1)
+    })
+  }
+
+  const formattedTime = timestamp
+    ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : ''
+
+  return (
+    <YStack
+      alignSelf={isUser ? 'flex-end' : 'flex-start'}
+      alignItems={isUser ? 'flex-end' : 'flex-start'}
+      marginBottom="$2"
+    >
+      <XStack
+        alignItems="flex-end"
+        gap="$2"
+        flexDirection={isUser ? 'row-reverse' : 'row'}
+      >
+        {/* Avatar */}
+        <YStack
+          width={32}
+          height={32}
+          borderRadius={16}
+          overflow="hidden"
+          backgroundColor={isUser ? '$blue5' : '$color4'}
+          alignItems="center"
+          justifyContent="center"
+        >
+          {isUser ? (
+            <Image source={{ uri: userPicture }} style={styles.avatar} />
+          ) : (
+            <Text fontSize={10} fontWeight="bold" color="$color">
+              IA
+            </Text>
+          )}
+        </YStack>
+
+        {/* Bubble */}
+        <Pressable
+          onPress={onPress}
+          onPressIn={() => { scale.value = withSpring(0.95) }}
+          onPressOut={() => { scale.value = withSpring(1) }}
+          onLongPress={handleLongPress}
+        >
+          <Animated.View style={animStyle}>
+            <YStack position="relative">
+              <YStack
+                backgroundColor={isUser ? '$blue10' : '$color3'}
+                borderRadius="$4"
+                padding="$3"
+                maxWidth={260}
+              >
+                <Text color={isUser ? 'white' : '$color'}>{text}</Text>
+              </YStack>
+              {/* Tail triangle */}
+              <View
+                position="absolute"
+                bottom={6}
+                {...(isUser ? { right: -7 } : { left: -7 })}
+                style={
+                  isUser
+                    ? [styles.tailRight, { borderLeftColor: bubbleColor }]
+                    : [styles.tailLeft, { borderRightColor: bubbleColor }]
+                }
+              />
+            </YStack>
+          </Animated.View>
+        </Pressable>
+      </XStack>
+
+      {/* Timestamp */}
+      {showTimestamp && formattedTime ? (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+        >
+          <Text
+            fontSize={11}
+            color="$placeholderColor"
+            marginTop="$1"
+            paddingHorizontal="$1"
+          >
+            {formattedTime}
+          </Text>
+        </Animated.View>
+      ) : null}
+    </YStack>
+  )
+}
+
+const styles = StyleSheet.create({
+  avatar: {
+    width: 32,
+    height: 32,
+  },
+  // Right-pointing triangle — user message tail (right side)
+  tailRight: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 6,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 6,
+    borderBottomColor: 'transparent',
+    borderLeftWidth: 8,
+    // borderLeftColor set inline from theme
+  },
+  // Left-pointing triangle — AI message tail (left side)
+  tailLeft: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 6,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 6,
+    borderBottomColor: 'transparent',
+    borderRightWidth: 8,
+    // borderRightColor set inline from theme
+  },
+})
