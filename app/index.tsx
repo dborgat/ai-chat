@@ -14,6 +14,7 @@ import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
 import { TypingDots } from '../components/TypingDots'
 import { useAppTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function ChatScreen() {
   const transport = useMemo(
@@ -25,6 +26,7 @@ export default function ChatScreen() {
   )
   const { messages, sendMessage, status, error } = useChat({ transport })
   const { theme, toggleTheme } = useAppTheme()
+  const { signOut } = useAuth()
   const [input, setInput] = useState('')
   const sendScale = useSharedValue(1)
   const sendAnimStyle = useAnimatedStyle(() => ({
@@ -46,7 +48,10 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <YStack flex={1} backgroundColor="$background" paddingTop={60}>
-        <XStack paddingHorizontal="$4" paddingTop="$2" justifyContent="flex-end">
+        <XStack paddingHorizontal="$4" paddingTop="$2" justifyContent="space-between" alignItems="center">
+          <Button size="$3" chromeless onPress={signOut}>
+            Salir
+          </Button>
           <Button
             size="$3"
             chromeless
@@ -89,6 +94,7 @@ export default function ChatScreen() {
             flex={1}
             value={input}
             onChangeText={setInput}
+            placeholderTextColor='$placeholderColor'
             placeholder="Escribe un mensaje..."
             onSubmitEditing={onSend}
           />
