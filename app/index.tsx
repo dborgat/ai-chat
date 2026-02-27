@@ -58,8 +58,8 @@ export default function ChatScreen() {
     >
       <YStack flex={1} backgroundColor="$background" paddingTop={60}>
         <XStack paddingHorizontal="$4" paddingTop="$2" justifyContent="space-between" alignItems="center">
-          <Button size="$3" chromeless onPress={signOut}>
-            Salir
+          <Button size="$3" chromeless onPress={signOut} variant="outlined">
+            Log Out
           </Button>
           <Button
             size="$3"
@@ -72,7 +72,7 @@ export default function ChatScreen() {
         </XStack>
         {error && <Text padding="$2" color="red" fontSize={11}>{error.message}{'\n'}{String(error)}</Text>}
         <ScrollView flex={1} padding="$4">
-          {messages.map((message) => (
+          {messages.length > 0 ? messages.map((message) => (
             <Animated.View
               key={message.id}
               entering={FadeInDown.springify().duration(350)}
@@ -89,7 +89,7 @@ export default function ChatScreen() {
                 }
               />
             </Animated.View>
-          ))}
+          )) :  <Text padding="$2" color="$textSoft" textAlign="center">Bienvenido a AI CHAT 😄</Text>}
           {status === 'submitted' && <TypingDots />}
         </ScrollView>
 

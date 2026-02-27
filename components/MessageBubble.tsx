@@ -66,6 +66,7 @@ export function MessageBubble({
           borderRadius={16}
           overflow="hidden"
           backgroundColor={isUser ? '$blue5' : '$color4'}
+          marginInline={'$2'}
           alignItems="center"
           justifyContent="center"
         >
