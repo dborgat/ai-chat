@@ -32,7 +32,7 @@ function Dot({ delay }: { delay: number }) {
     return () => {
       cancelAnimation(translateY)
     }
-  }, [translateY])
+  }, [translateY, delay])
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

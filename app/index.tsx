@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform } from 'react-native'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
@@ -36,14 +36,6 @@ export default function ChatScreen() {
     transform: [{ scale: sendScale.value }],
   }))
 
-  useEffect(() => {
-    for (const msg of messages) {
-      if (!timestampsRef.current.has(msg.id)) {
-        timestampsRef.current.set(msg.id, Date.now())
-      }
-    }
-  }, [messages])
-
   const onSend = () => {
     if (!input.trim()) return
     sendMessage({ text: input })
@@ -52,6 +44,12 @@ export default function ChatScreen() {
 
   const onPressSendIn = useCallback(() => { sendScale.value = withSpring(0.88) }, [sendScale])
   const onPressSendOut = useCallback(() => { sendScale.value = withSpring(1) }, [sendScale])
+
+  for (const msg of messages) {
+    if (!timestampsRef.current.has(msg.id)) {
+      timestampsRef.current.set(msg.id, Date.now())
+    }
+  }
 
   return (
     <KeyboardAvoidingView
@@ -83,7 +81,7 @@ export default function ChatScreen() {
               <MessageBubble
                 message={message}
                 isUser={message.role === 'user'}
-                userPicture={user!.picture}
+                userPicture={user?.picture ?? ''}
                 timestamp={timestampsRef.current.get(message.id)}
                 showTimestamp={visibleTimestampId === message.id}
                 onPress={() =>
