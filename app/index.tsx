@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform } from 'react-native'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
@@ -45,11 +45,13 @@ export default function ChatScreen() {
   const onPressSendIn = useCallback(() => { sendScale.value = withSpring(0.88) }, [sendScale])
   const onPressSendOut = useCallback(() => { sendScale.value = withSpring(1) }, [sendScale])
 
-  for (const msg of messages) {
-    if (!timestampsRef.current.has(msg.id)) {
-      timestampsRef.current.set(msg.id, Date.now())
+  useEffect(() => {
+    for (const msg of messages) {
+      if (!timestampsRef.current.has(msg.id)) {
+        timestampsRef.current.set(msg.id, Date.now())
+      }
     }
-  }
+  }, [messages])
 
   return (
     <KeyboardAvoidingView

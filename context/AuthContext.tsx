@@ -14,6 +14,16 @@ interface User {
   picture: string
 }
 
+function isValidUser(value: unknown): value is User {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as User).name === 'string' &&
+    typeof (value as User).email === 'string' &&
+    typeof (value as User).picture === 'string'
+  )
+}
+
 interface AuthContextValue {
   user: User | null
   loading: boolean
@@ -36,7 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((saved) => {
-        if (saved) setUser(JSON.parse(saved) as User)
+        if (saved) {
+          const parsed: unknown = JSON.parse(saved)
+          if (isValidUser(parsed)) setUser(parsed)
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false))

@@ -6,17 +6,27 @@ interface ChatRequestBody {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const project = process.env.GOOGLE_VERTEX_PROJECT
+  const location = process.env.GOOGLE_VERTEX_LOCATION
+  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY
+
+  if (!project || !location || !clientEmail || !privateKey) {
+    console.error('[API] Missing required environment variables')
+    return new Response('Server configuration error', { status: 500 })
+  }
+
   try {
     const { messages } = (await request.json()) as ChatRequestBody
     console.log('[API] hit — messages:', messages.length)
 
     const vertex = createVertex({
-      project: process.env.GOOGLE_VERTEX_PROJECT,
-      location: process.env.GOOGLE_VERTEX_LOCATION,
+      project,
+      location,
       googleAuthOptions: {
         credentials: {
-          client_email: process.env.GOOGLE_CLIENT_EMAIL,
-          private_key: process.env.GOOGLE_PRIVATE_KEY,
+          client_email: clientEmail,
+          private_key: privateKey,
         },
       },
     })

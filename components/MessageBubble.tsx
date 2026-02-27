@@ -1,5 +1,6 @@
 import * as Clipboard from 'expo-clipboard'
 import { isTextUIPart, UIMessage } from 'ai'
+import { memo, useCallback } from 'react'
 import { Image, Pressable, StyleSheet } from 'react-native'
 import Animated, {
   FadeIn,
@@ -19,7 +20,7 @@ interface MessageBubbleProps {
   onPress: () => void
 }
 
-export function MessageBubble({
+export const MessageBubble = memo(function MessageBubble({
   message,
   isUser,
   userPicture,
@@ -37,12 +38,15 @@ export function MessageBubble({
   const text = message.parts.filter(isTextUIPart).map((p) => p.text).join('')
   const bubbleColor = isUser ? theme.blue10.val : theme.color3.val
 
-  const handleLongPress = async () => {
+  const onPressIn = useCallback(() => { scale.value = withSpring(0.95) }, [scale])
+  const onPressOut = useCallback(() => { scale.value = withSpring(1) }, [scale])
+
+  const handleLongPress = useCallback(async () => {
     await Clipboard.setStringAsync(text)
     scale.value = withSpring(1.05, {}, () => {
       scale.value = withSpring(1)
     })
-  }
+  }, [text, scale])
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -50,9 +54,9 @@ export function MessageBubble({
 
   return (
     <YStack
-      alignSelf={isUser ? 'flex-end' : 'flex-start'}
+      self={isUser ? 'flex-end' : 'flex-start'}
       alignItems={isUser ? 'flex-end' : 'flex-start'}
-      marginBottom="$2"
+      mb="$4"
     >
       <XStack
         alignItems="flex-end"
@@ -82,8 +86,8 @@ export function MessageBubble({
         {/* Bubble */}
         <Pressable
           onPress={onPress}
-          onPressIn={() => { scale.value = withSpring(0.95) }}
-          onPressOut={() => { scale.value = withSpring(1) }}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
           onLongPress={handleLongPress}
         >
           <Animated.View style={animStyle}>
@@ -99,7 +103,7 @@ export function MessageBubble({
               {/* Tail triangle */}
               <View
                 position="absolute"
-                bottom={6}
+                b={6}
                 {...(isUser ? { right: -7 } : { left: -7 })}
                 style={
                   isUser
@@ -121,8 +125,8 @@ export function MessageBubble({
           <Text
             fontSize={11}
             color="$placeholderColor"
-            marginTop="$1"
-            paddingHorizontal="$1"
+            mt="$1"
+            px="$1"
           >
             {formattedTime}
           </Text>
@@ -130,7 +134,7 @@ export function MessageBubble({
       ) : null}
     </YStack>
   )
-}
+})
 
 const styles = StyleSheet.create({
   avatar: {
