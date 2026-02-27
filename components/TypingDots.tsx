@@ -45,13 +45,10 @@ export function TypingDots() {
   return (
     <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={{ marginLeft: 40 }}>
       <YStack
-        alignSelf="flex-start"
-        backgroundColor="$color3"
-        borderRadius="$4"
-        padding="$3"
-        marginBottom="$2"
+        style={{ alignSelf: 'flex-start', borderRadius: 4, padding: 12, marginBottom: 8 }}
+        background="$color3"
       >
-        <XStack alignItems="center">
+        <XStack style={{ alignItems: 'center' }}>
           <Dot delay={0} />
           <Dot delay={150} />
           <Dot delay={300} />
