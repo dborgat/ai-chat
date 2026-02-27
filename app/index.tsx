@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform } from 'react-native'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, isTextUIPart } from 'ai'
+import { DefaultChatTransport } from 'ai'
 import { fetch as expoFetch } from 'expo/fetch'
 import Animated, {
   FadeInDown,
@@ -13,6 +13,7 @@ import Animated, {
 import { YStack, XStack, Input, Button, Text, ScrollView } from 'tamagui'
 import { getApiUrl } from '../utils'
 import { TypingDots } from '../components/TypingDots'
+import { MessageBubble } from '../components/MessageBubble'
 import { useAppTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 
@@ -26,12 +27,22 @@ export default function ChatScreen() {
   )
   const { messages, sendMessage, status, error } = useChat({ transport })
   const { theme, toggleTheme } = useAppTheme()
-  const { signOut } = useAuth()
+  const { signOut, user } = useAuth()
   const [input, setInput] = useState('')
+  const timestampsRef = useRef<Map<string, number>>(new Map())
+  const [visibleTimestampId, setVisibleTimestampId] = useState<string | null>(null)
   const sendScale = useSharedValue(1)
   const sendAnimStyle = useAnimatedStyle(() => ({
     transform: [{ scale: sendScale.value }],
   }))
+
+  useEffect(() => {
+    for (const msg of messages) {
+      if (!timestampsRef.current.has(msg.id)) {
+        timestampsRef.current.set(msg.id, Date.now())
+      }
+    }
+  }, [messages])
 
   const onSend = () => {
     if (!input.trim()) return
@@ -69,21 +80,16 @@ export default function ChatScreen() {
               entering={FadeInDown.springify().duration(350)}
               layout={LinearTransition.springify()}
             >
-              <YStack
-                alignSelf={message.role === 'user' ? 'flex-end' : 'flex-start'}
-                backgroundColor={message.role === 'user' ? '$blue10' : '$gray5'}
-                borderRadius="$4"
-                padding="$3"
-                marginBottom="$2"
-                maxWidth="80%"
-              >
-                <Text color={message.role === 'user' ? 'white' : '$color'}>
-                  {message.parts
-                    .filter(isTextUIPart)
-                    .map((part) => part.text)
-                    .join('')}
-                </Text>
-              </YStack>
+              <MessageBubble
+                message={message}
+                isUser={message.role === 'user'}
+                userPicture={user!.picture}
+                timestamp={timestampsRef.current.get(message.id)}
+                showTimestamp={visibleTimestampId === message.id}
+                onPress={() =>
+                  setVisibleTimestampId((id) => (id === message.id ? null : message.id))
+                }
+              />
             </Animated.View>
           ))}
           {status === 'submitted' && <TypingDots />}
